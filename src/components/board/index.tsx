@@ -21,11 +21,11 @@ const Board = (props: BoardProps) => {
 
 
   return (
-    <div className={`flex flex-col gap-2 border border-solid border-slate-300 shadow rounded-t-lg w-full`}>
+    <div className={`flex flex-col border border-solid border-slate-300 shadow rounded-t-lg w-full`}>
       <div className={`border-b border-solid border-slate-300 p-3 ${styles} rounded-t-lg`}>
         <p className="text-base">{title}</p>
       </div>
-      <div className="py-4 px-5 flex flex-col gap-3">
+      <div className="flex-1 flex flex-col gap-3 px-5 py-4">
         {tasks?.map((task, index) => (<Card key={index} styles={getBorderLeftColor(task?.status || '')} data={task} openModal={openModal} />))}
       </div>
     </div>

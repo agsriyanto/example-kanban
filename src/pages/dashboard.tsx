@@ -98,9 +98,11 @@ const Dashboard = () => {
     showToast("Task deleted successfully!", "success")
   };
 
-  const taskTodo: Task[] = filteredTasks.filter((task: Task) => task.status === 'TO DO');
-  const taskDoing: Task[] = filteredTasks.filter((task: Task) => task.status === 'DOING');
-  const taskDone: Task[] = filteredTasks.filter((task: Task) => task.status === 'DONE');
+   const taskByStatus = {
+    "TO DO": filteredTasks.filter((task: Task) => task.status === "TO DO"),
+    "DOING": filteredTasks.filter((task: Task) => task.status === "DOING"),
+    "DONE": filteredTasks.filter((task: Task) => task.status === "DONE"),
+  };
 
   return (
     <>
@@ -118,25 +120,22 @@ const Dashboard = () => {
             Add Task
           </button>
         </div>
-        <div className='grid grid-rows-3 gap-10 md:grid-rows-1 md:grid-cols-3 overflow-x-auto'>
-          <Board
-            title='TO DO'
-            styles="bg-[#65CBE9] text-white font-bold"
-            tasks={taskTodo}
-            openModal={handleVisibleModal}
-          />
-          <Board
-            title='DOING'
-            styles="bg-[#ffd255] text-white font-bold"
-            tasks={taskDoing}
-            openModal={handleVisibleModal}
-          />
-          <Board
-            title='DONE'
-            styles="bg-[#4bed5f] text-white font-bold"
-            tasks={taskDone}
-            openModal={handleVisibleModal}
-          />
+        <div className="grid grid-rows-3 gap-10 md:grid-rows-1 md:grid-cols-3 overflow-x-auto">
+          {(["TO DO", "DOING", "DONE"] as ("TO DO" | "DOING" | "DONE")[]).map((status) => (
+            <Board
+              key={status}
+              title={status}
+              styles={
+                status === "TO DO"
+                  ? "bg-[#65CBE9] text-white font-bold"
+                  : status === "DOING"
+                  ? "bg-[#ffd255] text-white font-bold"
+                  : "bg-[#4bed5f] text-white font-bold"
+              }
+              tasks={taskByStatus[status]}
+              openModal={handleVisibleModal}
+            />
+          ))}
         </div>
       </div>
       <Modal

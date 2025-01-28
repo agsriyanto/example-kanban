@@ -1,6 +1,7 @@
 [
   {
     "email": "admin@mail.com",
+    "username": "admin",
     "password": "admin",
     "name": "Admin 1",
     "role": "super admin"

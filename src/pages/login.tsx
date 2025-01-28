@@ -1,52 +1,91 @@
-import React, { useState } from "react";
-import { loginUser } from "../authService";
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ setToken }) => {
-  const [email, setEmail] = useState("");
+const Login = () => {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await loginUser(email, password);
-    if (result.success) {
-      localStorage.setItem("token", result.token);
-      setToken(result.token);
-      setMessage("Login successful!");
-      navigate('/');
-    } else {
-      setMessage(result.message);
+
+    try {
+      const response = await fetch("/users.json");
+      const users = await response.json();
+
+      interface User {
+        email: string;
+        username: string;
+        password: string;
+        name: string;
+        role: string;
+      }
+
+      const foundUser = users.find(
+        (u: User) => u.username === username && u.password === password
+      );
+
+      if (foundUser) {
+        setError("");
+        window.location.reload();
+        localStorage.setItem("user", JSON.stringify(foundUser));
+
+      } else {
+        setError("Invalid username or password.");
+      }
+    } catch {
+      setError("Failed to fetch user data.");
     }
   };
 
   return (
-    <div className="flex flex-col gap-9 justify-self-center items-center p-7 border border-solid border-slate-300 rounded-lg w-fit shadow">
-      
-      <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
-        Login to&nbsp;
-        <code className="font-mono font-bold">Kanban App</code>
-      </p>
-      <div>
-        <form onSubmit={handleLogin}>
+    <div className="flex items-center justify-center h-screen">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-6 rounded shadow-md w-80"
+      >
+        <h2 className="text-lg font-bold mb-4">Login</h2>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Username
+          </label>
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            className="mt-1 block w-full p-2 border rounded-md"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
           />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
           <input
             type="password"
-            placeholder="Password"
+            className="mt-1 block w-full p-2 border rounded-md"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
-          <button type="submit">Login</button>
-        </form>
-        {message && <p>{message}</p>}
-      </div>
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="bg-blue-500 text-white py-2 px-4 rounded w-full"
+        >
+          Login
+        </button>
+      </form>
     </div>
   );
 };
