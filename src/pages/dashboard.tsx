@@ -8,9 +8,10 @@ import { tasksAtom, addTaskAtom, deleteTaskAtom, updateTaskAtom } from '../actio
 import Modal from '../components/modal';
 import ConfirmationModal from '../components/modal/confirmation';
 import Toast from '../components/toast';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 
 const Dashboard = () => {
-  const [ tasks ] = useAtom(tasksAtom);
+  const [ tasks, setTasks ] = useAtom(tasksAtom);
   const addTask = useSetAtom(addTaskAtom);
   const deleteTask = useAtom(deleteTaskAtom)[1];
   const updateTask = useSetAtom(updateTaskAtom);
@@ -30,7 +31,8 @@ const Dashboard = () => {
     }, 1000);
   };
 
-  const filteredTasks = tasks.filter((task: Task) =>
+  console.log({tasks});
+  const filteredTasks = tasks?.filter((task: Task) =>
     task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     String(task.id).toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -104,6 +106,32 @@ const Dashboard = () => {
     "DONE": filteredTasks.filter((task: Task) => task.status === "DONE"),
   };
 
+  const handleDragEnd = (result: any) => {
+    const { source, destination } = result;
+  
+    // If dropped outside the list
+    if (!destination) {
+      return;
+    }
+  
+    const sourceIndex = source.index;
+    const destinationIndex = destination.index;
+    
+    // Get the task that was dragged
+    const draggedTask = tasks[sourceIndex];
+    
+    // Update the task's status based on the new column (destination)
+    draggedTask.status = destination.droppableId; // Update status to the new board
+  
+    // Reorder the tasks (move the dragged task in the array)
+    const reorderedTasks = Array.from(tasks);
+    reorderedTasks.splice(sourceIndex, 1);
+    reorderedTasks.splice(destinationIndex, 0, draggedTask);
+  
+    console.log({reorderedTasks});
+    setTasks(reorderedTasks);
+  };
+
   return (
     <>
       <Navbar />
@@ -120,23 +148,26 @@ const Dashboard = () => {
             Add Task
           </button>
         </div>
-        <div className="grid grid-rows-3 gap-10 md:grid-rows-1 md:grid-cols-3 overflow-x-auto">
-          {(["TO DO", "DOING", "DONE"] as ("TO DO" | "DOING" | "DONE")[]).map((status) => (
-            <Board
-              key={status}
-              title={status}
-              styles={
-                status === "TO DO"
-                  ? "bg-[#65CBE9] text-white font-bold"
-                  : status === "DOING"
-                  ? "bg-[#ffd255] text-white font-bold"
-                  : "bg-[#4bed5f] text-white font-bold"
-              }
-              tasks={taskByStatus[status]}
-              openModal={handleVisibleModal}
-            />
-          ))}
-        </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-rows-3 gap-10 md:grid-rows-1 md:grid-cols-3 overflow-x-auto">
+            {(["TO DO", "DOING", "DONE"] as ("TO DO" | "DOING" | "DONE")[]).map((status, i) => (
+              <Board
+                index={i}
+                key={status}
+                title={status}
+                styles={
+                  status === "TO DO"
+                    ? "bg-[#65CBE9] text-white font-bold"
+                    : status === "DOING"
+                    ? "bg-[#ffd255] text-white font-bold"
+                    : "bg-[#4bed5f] text-white font-bold"
+                }
+                tasks={taskByStatus[status]}
+                openModal={handleVisibleModal}
+              />
+            ))}
+          </div>
+        </DragDropContext>
       </div>
       <Modal
         isVisible={isModalVisible}
